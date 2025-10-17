@@ -1,43 +1,72 @@
 const User = require("../models/userSchema");
+const Blog = require("../models/blogSchema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-module.exports.registerPage = (req, res) => res.render("pages/register");
-module.exports.loginPage = (req, res) => res.render("pages/login");
 
-module.exports.register = async (req, res) => {
+exports.register = async (req, res) => {
   try {
-    req.body.password = await bcrypt.hash(req.body.password, 10);
-    await User.create(req.body);
-    return res.redirect("/login");
-  } catch (error) {
-    return res.render("pages/register", { error: "Email already used!" });
+    const { username, email, password } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.render("pages/register", { error: "User already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({ username, email, password: hashedPassword });
+
+    res.redirect("/pages/login");
+  } catch (err) {
+    res.render("pages/register", { error: err.message });
   }
 };
 
-module.exports.login = async (req, res) => {
+
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.render("pages/login", { error: "User not found" });
+    if (!user) return res.render("pages/login", { error: "Invalid Email or Password" });
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) return res.render("pages/login", { error: "Wrong password" });
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return res.render("pages/login", { error: "Invalid Email or Password" });
 
-    const token = jwt.sign(
-      { _id: user._id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: "2h" }
-    );
+    const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.cookie("jwt", token, { httpOnly: true, maxAge: 3600000 });
 
-    res.cookie("jwt", token, { httpOnly: true });
-    res.redirect("/");
+    res.redirect("/dashboard");
   } catch (err) {
     res.render("pages/login", { error: err.message });
   }
 };
+exports.homePage = async (req, res) => {
+  try {
+    const blogs = await Blog.find()
+      .populate("author", "username")  // get author's username
+      .sort({ createdAt: -1 });
 
-module.exports.logout = (req, res) => {
-  res.clearCookie("jwt");
-  res.redirect("/login");
+    
+    res.render("dashboard/index", { blogs });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+
+exports.viewUsers = async (req, res) => {
+  try {
+    const users = await User.find(); 
+    res.render("pages/view-users", { users }); 
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    await User.findByIdAndDelete(userId);
+    res.redirect("/pages/view-users");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 };
