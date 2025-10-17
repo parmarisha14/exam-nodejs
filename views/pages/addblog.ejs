@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Blog</title>
+</head>
+<body>
+  <h2>Add New Blog</h2>
+
+  <% if (error) { %>
+    <p style="color:red;"><%= error %></p>
+  <% } %>
+
+  <form action="/add" method="POST">
+    <label>Title:</label><br>
+    <input type="text" name="title" required><br><br>
+
+    <label>Content:</label><br>
+    <textarea name="content" rows="6" cols="40" required></textarea><br><br>
+
+    <label>Image URL (optional):</label><br>
+    <input type="text" name="image"><br><br>
+
+    <button type="submit">Publish Blog</button>
+  </form>
+
+  <br>
+  <a href="/">Back to Home</a>
+</body>
+</html>
