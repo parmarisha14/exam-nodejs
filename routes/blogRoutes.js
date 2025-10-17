@@ -1,10 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const auth = require("../middlewares/auth"); // JWT or session middleware
+const auth = require("../middlewares/auth"); 
 const blogController = require("../controllers/blogController");
 const multer = require("multer");
 
-// Multer config for image upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -15,7 +14,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Blog routes
+
 router.get("/", auth, blogController.getAllBlogs);
 router.get("/add", auth, blogController.addBlogPage);
 router.post("/add", auth, upload.single("image"), blogController.addBlog);

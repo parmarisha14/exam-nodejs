@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
 exports.homePage = async (req, res) => {
   try {
     const blogs = await Blog.find()
-      .populate("author", "username")  // get author's username
+      .populate("author", "username")  
       .sort({ createdAt: -1 });
 
     

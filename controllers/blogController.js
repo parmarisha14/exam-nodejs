@@ -1,20 +1,19 @@
 const Blog = require("../models/blogSchema");
 const User = require("../models/userSchema");
 
-// Render add blog page
+
 exports.addBlogPage = (req, res) => {
   res.render("pages/add-blog", { error: null });
 };
 
-// Add new blog
 exports.addBlog = async (req, res) => {
   try {
     const { title, content } = req.body;
-    const author = req.user._id; // logged-in user
+    const author = req.user._id; 
     let image = null;
 
     if (req.file) {
-      image = req.file.path; // multer file upload
+      image = req.file.path; 
     }
 
     await Blog.create({ title, content, author, image });
@@ -24,7 +23,7 @@ exports.addBlog = async (req, res) => {
   }
 };
 
-// List all blogs
+
 exports.getAllBlogs = async (req, res) => {
   try {
     const blogs = await Blog.find().populate("author", "username email");
@@ -46,7 +45,7 @@ exports.editBlogPage = async (req, res) => {
   }
 };
 
-// Handle blog update
+
 exports.updateBlog = async (req, res) => {
   try {
     const blogId = req.params.id;
@@ -65,7 +64,7 @@ exports.deleteBlog = async (req, res) => {
   try {
     const blogId = req.params.id;
     await Blog.findByIdAndDelete(blogId);
-    res.redirect("/blog/view"); // redirect to the view blogs page
+    res.redirect("/blog/view"); 
   } catch (err) {
     res.status(500).send(err.message);
   }
